@@ -1,7 +1,5 @@
--- used under windows for debugging purposes
--- this line must be commented in ComputerCraft
-local turtle = require "turtle" ; require "json"  
------------------------------------------------------
+-- this line must be commented in ComputerCraft (windows debug)
+-- local turtle = require "turtle"
 
 -- myTurtle class inherits from turtle (both in game and in Windows)
 local myTurtle = {}
@@ -21,19 +19,69 @@ myTurtle.mt = {
 setmetatable(myTurtle, myTurtle.mt)
 
 -- myTurtle implementation
-function myTurtle.turnAround() 
-		print("turn around!")
+function myTurtle.turnAround()
+	myTurtle.turnRight()
+	myTurtle.turnRight()
 end
 
-
-controller = {}
-
-controller.start = function()
-	myTurtle.turnAround()
-	myTurtle["turnAround"]()
+function myTurtle.uTurnLeft()
+	myTurtle.turnLeft()
 	myTurtle.forward()
-	myTurtle.forwards()
+	myTurtle.turnLeft()
+end
+
+function myTurtle.uTurnRight()
+	myTurtle.turnRight()
+	myTurtle.forward()
+	myTurtle.turnRight()
 end
 
 
-controller.start()
+function myTurtle.build(items)
+	print("building with ", table.concat(items, ','))
+end
+
+-- Define main controller
+controller = {}
+controller.processMove = function(move) 
+	-- figure how many times this move must be repeated
+	local repeatCount = 1
+	if move.rep	then 
+		repeatCount = move.rep
+	end
+	
+	for i = 1, repeatCount do
+		if move.action == "composite" and move.submoves then
+			for subid, submove in pairs(move.submoves) do
+				controller.processMove(submove)
+			end
+		else
+			myTurtle[move.action](move.args)
+		end
+		
+	end
+end
+
+controller.start = function(path)
+	local f = io.open(path, "r")
+	
+	-- Load whole file into string (workaround since *all doesn't work in ComputerCraft)
+	local configAsJsonText = ""
+	while true do
+		local line =  f:read()
+		if line == nil then break end
+		configAsJsonText = configAsJsonText .. line
+	end
+	-- Decode to table
+	local config = json.decode(configAsJsonText)
+	
+	-- Run
+	for id, move in pairs(config.actionList) do
+		controller.processMove(move)
+	end
+	
+end
+
+
+controller.start("/rom/programs/custo/basicMoves.json")
+-- controller.start("basicMoves.json")
