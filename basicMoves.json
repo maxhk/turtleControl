@@ -1,0 +1,6 @@
+[
+	{ "action":"forward" }
+	{ "action":"turnAround" }
+	{ "action":"build", "args":[1,2,3]}
+
+]
