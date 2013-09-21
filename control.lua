@@ -18,6 +18,7 @@ myTurtle.mt = {
 -- activate inheritance
 setmetatable(myTurtle, myTurtle.mt)
 
+
 -- myTurtle implementation
 function myTurtle.turnAround()
 	myTurtle.turnRight()
@@ -36,6 +37,32 @@ function myTurtle.uTurnRight()
 	myTurtle.turnRight()
 end
 
+
+function myTurtle.select(slots)
+	for id, slot in pairs(slots) do
+		if myTurtle.getItemCount(slot) > 0 then
+			turtle.select(slot)
+			return true
+		end
+	end
+	myTurtle.failure("No item left to select")
+end
+
+function myTurtle.place(slots)
+	myTurtle.select(slots)
+	return turtle.place(slot)
+end
+
+function myTurtle.placeDown(slots)
+	myTurtle.select(slots)
+	return turtle.placeDown(slot)
+end
+
+
+function myTurtle.failure(message)
+	print("Turtle failure: " .. message)
+	error()
+end
 
 function myTurtle.build(items)
 	print("building with ", table.concat(items, ','))
@@ -82,6 +109,10 @@ controller.start = function(path)
 	
 end
 
+local tArgs = { ... }
+if #tArgs ~= 1 then
+	print( "Usage: control <json_file>" )
+	return
+end
+controller.start(tArgs[1])
 
-controller.start("/rom/programs/custo/basicMoves.json")
--- controller.start("basicMoves.json")
